@@ -11,6 +11,9 @@
 from typing import List
 
 import numpy as np
+import matplotlib.pyplot as plt
+import cv2
+
 LOAD_GRAY_SCALE = 1
 LOAD_RGB = 2
 
@@ -20,7 +23,7 @@ def myID() -> np.int:
     Return my ID (not the friend's ID I copied from)
     :return: int
     """
-    return 123456789
+    return 209337161
 
 
 def imReadAndConvert(filename: str, representation: int) -> np.ndarray:
@@ -30,7 +33,13 @@ def imReadAndConvert(filename: str, representation: int) -> np.ndarray:
     :param representation: GRAY_SCALE or RGB
     :return: The image object
     """
-    pass
+    img = cv2.imread(filename)
+    if representation == LOAD_GRAY_SCALE:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        return (img - img.min()) / (img.max() - img.min())
+    else:  # we should represent in RGB
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        return (img - img.min()) / (img.max() - img.min())
 
 
 def imDisplay(filename: str, representation: int):
@@ -40,7 +49,9 @@ def imDisplay(filename: str, representation: int):
     :param representation: GRAY_SCALE or RGB
     :return: None
     """
-    pass
+    img = imReadAndConvert(filename, representation)
+    plt.imshow(img)
+    plt.show()  # no need to do this is jupyter
 
 
 def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
