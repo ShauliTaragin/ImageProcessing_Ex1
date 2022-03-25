@@ -51,6 +51,7 @@ def imDisplay(filename: str, representation: int):
     """
     img = imReadAndConvert(filename, representation)
     plt.imshow(img)
+    plt.gray()  # to change the view of the picture to actual greyscale
     plt.show()  # no need to do this is jupyter
 
 
@@ -60,7 +61,9 @@ def transformRGB2YIQ(imgRGB: np.ndarray) -> np.ndarray:
     :param imgRGB: An Image in RGB
     :return: A YIQ in image color space
     """
-    pass
+    YIQ_conversion = np.array([[0.299, 0.587, 0.114], [0.596, -0.275, -0.321], [0.212, -0.523, 0.311]])
+    imgYIQ = np.dot(imgRGB, YIQ_conversion.transpose())
+    return imgYIQ
 
 
 def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
@@ -69,7 +72,10 @@ def transformYIQ2RGB(imgYIQ: np.ndarray) -> np.ndarray:
     :param imgYIQ: An Image in YIQ
     :return: A RGB in image color space
     """
-    pass
+    YIQ_conversion = np.array([[0.299, 0.587, 0.114], [0.596, -0.275, -0.321], [0.212, -0.523, 0.311]])
+    YIQ_conversion_inverse = np.linalg.inv(YIQ_conversion)
+    imgRGB = np.dot(imgYIQ, YIQ_conversion_inverse.transpose())
+    return imgRGB
 
 
 def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarray):
@@ -78,7 +84,25 @@ def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarra
         :param imgOrig: Original Histogram
         :ret
     """
-    pass
+    # normalize from 0-1 to 0-255
+    imgOrig = cv2.normalize(imgOrig, None, 0, 255, cv2.NORM_MINMAX)
+    imgOrig = imgOrig.astype('uint8')
+
+    # first we calculate the original image's histogram
+    img_flat = imgOrig.ravel()
+    histOrg = np.zeros(256)
+    for pix in img_flat:
+        histOrg[pix] += 1
+
+    # calculate the cum_sum
+    cum_sum = np.zeros_like(imgOrig)
+    cum_sum[0] = imgOrig[0]
+    for i in range(1, len(imgOrig)):
+        cum_sum[i] = imgOrig[i] + cum_sum[i - 1]
+
+    #Create look up table
+    LUT = np.floor((cum_sum / cum_sum.max()) * 255)
+
 
 
 def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarray], List[float]):
