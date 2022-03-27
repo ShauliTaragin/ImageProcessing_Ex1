@@ -89,8 +89,8 @@ def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarra
     is_RGB = False
     if len(shape) > 2:
         is_RGB = True
-        YIQOrig = transformRGB2YIQ(imgOrig)[:, :, 0]
-        imgOrig = YIQOrig
+        YIQOrig = transformRGB2YIQ(imgOrig)
+        imgOrig = YIQOrig[:, :, 0]
 
     # normalize from 0-1 to 0-255
     imgOrig = cv2.normalize(imgOrig, None, 0, 255, cv2.NORM_MINMAX)
@@ -103,18 +103,19 @@ def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarra
         histOrg[pix] += 1
 
     # calculate the cum_sum
-    cum_sum = np.zeros_like(imgOrig)
-    cum_sum[0] = imgOrig[0]
-    for i in range(1, len(imgOrig)):
-        cum_sum[i] = imgOrig[i] + cum_sum[i - 1]
+    cum_sum = np.zeros_like(histOrg)
+    cum_sum[0] = histOrg[0]
+    for i in range(1, len(histOrg)):
+        cum_sum[i] = histOrg[i] + cum_sum[i - 1]
 
     # Create look up table
-    LUT = np.floor((cum_sum / cum_sum.max()) * 255)
+    cum_sum_norm = cum_sum / cum_sum.max()
+    LUT = np.floor(cum_sum_norm * 255).astype('uint8')
 
     # with new picture replace each intensity i with LUT[i]
     imEq = np.zeros_like(imgOrig, dtype=float)
     for pix in range(256):
-        imEq[imgOrig == pix] = int(LUT[pix])
+        imEq[imgOrig == pix] = LUT[pix]
 
     # normalize and calculate histogram
     imEq = cv2.normalize(imEq, None, 0, 255, cv2.NORM_MINMAX)
@@ -126,7 +127,7 @@ def hsitogramEqualize(imgOrig: np.ndarray) -> (np.ndarray, np.ndarray, np.ndarra
 
     # If the picture was RGB we need to return it to RGB form
     if is_RGB is True:
-        YIQOrig[:, :, 0] = imEq / (imEq.max() - imEq.min())
+        YIQOrig[:, :, 0] = imEq / 255  # we do this because we need to return an image (0,1)
         imEq = transformYIQ2RGB(YIQOrig)
 
     return imEq, histOrg, histEQ
@@ -140,4 +141,43 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
         :param nIter: Number of optimization loops
         :return: (List[qImage_i],List[error_i])
     """
-    pass
+    # start by checking if its RGB and if so convert to YIQ similar to Histogram
+    shape = imOrig.shape
+    is_RGB = False
+    if len(shape) > 2:
+        is_RGB = True
+        YIQOrig = transformRGB2YIQ(imOrig)
+        imOrig = YIQOrig[:, :, 0]
+
+    # initialize the lists we will return
+    images = []
+    errors = []
+
+    # normalize from 0-1 to 0-255
+    imOrig = cv2.normalize(imOrig, None, 0, 255, cv2.NORM_MINMAX)
+    imOrig = imOrig.astype('uint8')
+
+    # calculate histogram
+    imOrig_flat = imOrig.ravel()
+    hist = np.zeros(256)
+    for pix in imOrig_flat:
+        hist[pix] += 1
+
+    # start quantization process
+    # create initial borders
+    borders = np.zeros(nQuant + 1, dtype=np.float)
+    border_count = 0
+    for i in range(nQuant + 1):
+        border_count += 255.0 / nQuant
+        borders[i] = border_count
+
+    # main loop which we run nIter times
+    for i in range(nIter):
+        
+        for k in range(nQuant):
+            intense = hist[borders[k]:borders[k + 1]]
+            q = np.average(intense, weights=hist[borders[k]: borders[k + 1] + 1])
+
+    if is_RGB is True:
+        YIQOrig[:, :, 0] = imEq / 255  # we do this because we need to return an image (0,1)
+        imEq = transformYIQ2RGB(YIQOrig)
