@@ -173,7 +173,7 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
 
     # main loop which we run nIter times
     for i in range(nIter):
-        
+        np.round(borders).astype(int)
         for k in range(nQuant):
             intense = hist[borders[k]:borders[k + 1]]
             q = np.average(intense, weights=hist[borders[k]: borders[k + 1] + 1])
