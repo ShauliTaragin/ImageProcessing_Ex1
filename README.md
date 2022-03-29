@@ -27,8 +27,7 @@
 ### Professor : Dr Gil Ben-Artzi
 
 ---------
-
-
+<!-- Version -->
 ### Version and information 
 
 Python Version - Python 3.9.2
@@ -36,7 +35,7 @@ Python Version - Python 3.9.2
 Platform - Pycharm
 
 ---------
-
+<!-- Submission -->
 ### Submission Files 
 
 * ex1_main.py - The driver code. 
@@ -60,7 +59,7 @@ Platform - Pycharm
 
 
 ---------
-
+<!-- Functions -->
 ### Functions I've Written
 
 * def imReadAndConvert(filename: str, representation: int) -> np.ndarray:
