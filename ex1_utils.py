@@ -144,40 +144,65 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
     # start by checking if its RGB and if so convert to YIQ similar to Histogram
     shape = imOrig.shape
     is_RGB = False
+    img_copy = imOrig
     if len(shape) > 2:
         is_RGB = True
-        YIQOrig = transformRGB2YIQ(imOrig)
-        imOrig = YIQOrig[:, :, 0]
+        YIQOrig = transformRGB2YIQ(img_copy)
+        img_copy = YIQOrig[:, :, 0]
 
     # initialize the lists we will return
     images = []
     errors = []
 
     # normalize from 0-1 to 0-255
-    imOrig = cv2.normalize(imOrig, None, 0, 255, cv2.NORM_MINMAX)
-    imOrig = imOrig.astype('uint8')
+    img_copy = cv2.normalize(img_copy, None, 0, 255, cv2.NORM_MINMAX)
 
     # calculate histogram
-    imOrig_flat = imOrig.ravel()
+    imOrig_flat = img_copy.ravel().astype(int)
     hist = np.zeros(256)
     for pix in imOrig_flat:
         hist[pix] += 1
 
     # start quantization process
     # create initial borders
-    borders = np.zeros(nQuant + 1, dtype=np.float)
+    borders = np.zeros(nQuant + 1, dtype=np.int)
     border_count = 0
     for i in range(nQuant + 1):
-        border_count += 255.0 / nQuant
-        borders[i] = border_count
-
+        borders[i] = i * (255.0 / nQuant)
     # main loop which we run nIter times
     for i in range(nIter):
-        np.round(borders).astype(int)
+        # create array of q's .Each entry will be the appropriate q we calculate between borders z.
+        q_array = np.zeros(nQuant, dtype=np.int)
+        # calculate each q according to formula
         for k in range(nQuant):
-            intense = hist[borders[k]:borders[k + 1]]
-            q = np.average(intense, weights=hist[borders[k]: borders[k + 1] + 1])
+            q = hist[borders[k]:borders[k + 1]]
+            formula = (range(len(q)) * q).sum() / q.sum()
+            q_array[k] = (formula+borders[k]).astype(int)
+        # recalculate borders
+        z_0 = borders[0]
+        z_last = borders[-1]
+        borders = np.zeros_like(borders)
+        for j in range(1, nQuant):
+            borders[j] = (q_array[j - 1] + q_array[j]) / 2
+        borders[0] = z_0
+        borders[-1] = z_last
 
+        # recolor image
+        temp_img = np.zeros_like(img_copy)
+        for h in range(nQuant):
+            z_temp = borders[h]
+            temp_img[img_copy > z_temp] = q_array[h]
+
+        images.append(temp_img)
+
+        # calculate and add MSE
+        errors.append(np.sqrt((img_copy - temp_img) ** 2).mean())
+
+    # if picture is RGB return it from YIQ to RGB before adding it to the list of images.
     if is_RGB is True:
-        YIQOrig[:, :, 0] = imEq / 255  # we do this because we need to return an image (0,1)
-        imEq = transformYIQ2RGB(YIQOrig)
+        for i in range(len(images)):
+            YIQOrig[:, :, 0] = images[i] / 255  # we do this because we need to return an image (0,1)
+            images[i] = transformYIQ2RGB(YIQOrig)
+            images[i][images[i] > 1] = 1
+            images[i][images[i] < 0] = 0
+    return images, errors
