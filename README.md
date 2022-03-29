@@ -1,5 +1,5 @@
 # ImageProcessing Ex1
-<b>The first Task in image processing course
+#### The first Task in image processing course
 
 
 
@@ -49,7 +49,9 @@ Platform - Pycharm
 * gamma.py- Implementation of Question 4.6
 
 
-* testImg1.jpg - A beautiful picture of Antigua, Guatemala. I chose this picture since it has an abundance of diverse colors from all types of shades.
+* testImg1.jpg - 
+      
+    A beautiful picture of Antigua, Guatemala. I chose this picture since it has an abundance of diverse colors from all types of shades.
 
 
 * testImg2.jpg - A classic Image of Downtown New York, USA. This image was great for testing how the histogram and quantization would work with an image that has many details on the on hand, And a lot of the same shade of sky on the other.
