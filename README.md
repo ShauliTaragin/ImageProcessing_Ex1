@@ -27,14 +27,16 @@
 ### Professor : Dr Gil Ben-Artzi
 
 ---------
+
 <!-- Version -->
-### Version and information 
+### Version and Information
 
 Python Version - Python 3.9.2
 
 Platform - Pycharm
 
 ---------
+
 <!-- Submission -->
 ### Submission Files 
 
@@ -61,6 +63,7 @@ Platform - Pycharm
 
 
 ---------
+
 <!-- Functions -->
 ### Functions I've Written
 
