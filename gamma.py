@@ -37,7 +37,8 @@ def gammaDisplay(img_path: str, rep: int):
     if rep == LOAD_GRAY_SCALE:
         img_to_gamma = cv2.imread(img_path, 2)
     # img is RGB
-    img_to_gamma = cv2.imread(img_path, 1)
+    else:
+        img_to_gamma = cv2.imread(img_path, 1)
 
     cv2.namedWindow("Gamma Correction")
     trackbar_name = 'Gamma'
