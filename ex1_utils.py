@@ -167,17 +167,9 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
     # create initial borders
     borders = np.zeros(nQuant + 1, dtype=np.int)
     border_count = 0
-    eachPart = hist.sum() / nQuant
-    Sum = 0
-    np.append(borders, 0)
-    for i in range(256):
-        Sum += hist[i]
-        if Sum >= eachPart:
-            Sum = 0
-            np.append(borders, i + 1)
-    np.append(borders, 256)
     for i in range(nQuant + 1):
         borders[i] = i * (255.0 / nQuant)
+    borders[-1] = 256
     # main loop which we run nIter times
     for i in range(nIter):
         # create array of q's .Each entry will be the appropriate q we calculate between borders z.
