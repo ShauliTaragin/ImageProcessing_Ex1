@@ -15,7 +15,7 @@ import numpy as np
 max_num = 255
 
 
-def adjust_gamma(brightness=0) :
+def adjust_gamma(brightness=0):
     gamma = float(brightness) / 100
     invGamma = 1000
     if gamma != 0:
@@ -43,8 +43,8 @@ def gammaDisplay(img_path: str, rep: int):
     cv2.namedWindow("Gamma Correction")
     trackbar_name = 'Gamma'
     # since the requirement was to represent from 0 to 2 with resolution 0.01 but we use int we will represent from 0-100
-    cv2.createTrackbar(trackbar_name, "Gamma Correction", 50, 100, adjust_gamma)
-    adjust_gamma(50)
+    cv2.createTrackbar(trackbar_name, "Gamma Correction", 100, 200, adjust_gamma)
+    adjust_gamma(100)
     # when user presses a key we respond(and if need exit the program
     cv2.waitKey()
 

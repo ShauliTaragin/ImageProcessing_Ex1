@@ -167,6 +167,15 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
     # create initial borders
     borders = np.zeros(nQuant + 1, dtype=np.int)
     border_count = 0
+    eachPart = hist.sum() / nQuant
+    Sum = 0
+    np.append(borders, 0)
+    for i in range(256):
+        Sum += hist[i]
+        if Sum >= eachPart:
+            Sum = 0
+            np.append(borders, i + 1)
+    np.append(borders, 256)
     for i in range(nQuant + 1):
         borders[i] = i * (255.0 / nQuant)
     # main loop which we run nIter times
@@ -176,8 +185,8 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
         # calculate each q according to formula
         for k in range(nQuant):
             q = hist[borders[k]:borders[k + 1]]
-            formula = (range(len(q)) * q).sum() / q.sum()
-            q_array[k] = (formula+borders[k]).astype(int)
+            rng = np.arange(int(borders[k]), int(borders[k + 1]))
+            q_array[k] = (rng * q).sum() / (q.sum()).astype(int)
         # recalculate borders
         z_0 = borders[0]
         z_last = borders[-1]
@@ -197,7 +206,9 @@ def quantizeImage(imOrig: np.ndarray, nQuant: int, nIter: int) -> (List[np.ndarr
 
         # calculate and add MSE
         errors.append(np.sqrt((img_copy - temp_img) ** 2).mean())
-
+        # if we converge then break as written in instructions
+        if len(errors) > 1 and abs(errors[-2] - errors[-1]) < 0.001:
+            break
     # if picture is RGB return it from YIQ to RGB before adding it to the list of images.
     if is_RGB is True:
         for i in range(len(images)):
